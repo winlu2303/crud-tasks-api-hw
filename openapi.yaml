@@ -1,0 +1,228 @@
+openapi: 3.0.0
+info:
+  title: crud-tasks-api
+  description: REST API для управления задачами
+  version: 1.0.0
+  contact:
+    name: winlu2303
+    email: citokin0701@gmail.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8080
+    description: Локальный сервер разработки
+
+paths:
+  /health:
+    get:
+      summary: Проверка здоровья сервера
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Сервер работает
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  /tasks:
+    get:
+      summary: Получить список всех задач
+      tags:
+        - Tasks
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Создать новую задачу
+      tags:
+        - Tasks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+              properties:
+                title:
+                  type: string
+                  example: "Купить продукты"
+                  description: Название задачи
+      responses:
+        '201':
+          description: Задача создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Метод не поддерживается
+
+  /tasks/{id}:
+    get:
+      summary: Получить задачу по ID
+      tags:
+        - Tasks
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID задачи
+      responses:
+        '200':
+          description: Задача найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Неверный ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Задача не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Обновить задачу
+      tags:
+        - Tasks
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - done
+              properties:
+                title:
+                  type: string
+                  example: "Купить молоко"
+                done:
+                  type: boolean
+                  example: true
+      responses:
+        '200':
+          description: Задача обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Задача не найдена
+        '405':
+          description: Метод не поддерживается
+
+    delete:
+      summary: Удалить задачу
+      tags:
+        - Tasks
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Задача удалена
+        '404':
+          description: Задача не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Метод не поддерживается
+
+components:
+  schemas:
+    Task:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Уникальный идентификатор задачи
+          example: 1
+        title:
+          type: string
+          description: Название задачи
+          example: "Изучить 한국어 (Korean)"
+        done:
+          type: boolean
+          description: Статус выполнения
+          example: false
+        created_at:
+          type: string
+          format: date-time
+          description: Дата создания (ISO8601)
+          example: "2024-05-05T12:00:00+03:00"
+      required:
+        - id
+        - title
+        - done
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Сообщение об ошибке
+          example: "Title is required"
+      required:
+        - error
+
+tags:
+  - name: Tasks
+    description: Операции с задачами
+  - name: Health
+    description: Проверка работоспособности
